@@ -204,6 +204,11 @@ ak_stack
 ```
 
 ```{r}
+ak_stack_3338
+```
+
+
+```{r}
 ak_stack@layers
 ```
 
@@ -269,6 +274,27 @@ plot_raster = ggplot() + ggRGB(ak_stack, r=1, g=2, b=3, stretch = "lin", ggLayer
 plot_raster
 
 ```
+xmin       : -214350 
+xmax       : 93200 
+ymin       : 2212800 
+ymax       : 2399450 
+```{r}
+plot_raster0 = ggplot() + ggRGB(ak_stack_3338_clip, r=1, g=2, b=3, stretch = "lin", ggLayer = TRUE, coord_equal = TRUE) +
+  xlim(-214350 , 93200) + ylim(2212800 , 2399450) +
+  theme_void() +
+   theme(
+     axis.text = element_blank(),
+     axis.ticks = element_blank(),
+     axis.title = element_blank()) +
+  annotation_scale(location = "bl", width_hint = 0.25, text_size = 12, text_face = NULL, text_family = "serif", text_col = "black") +
+    annotation_north_arrow(location = "tl", which_north = "true", 
+        pad_x = unit(0.4, "in"), pad_y = unit(0.5, "in"),
+        style = north_arrow_nautical(line_width = 1, line_col = "black", fill = c("black", "white"), text_size = 10, text_face = NULL, text_family = "serif", text_col = "black", text_angle = 0)) +
+  coord_sf(crs = "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", xlim = c(-214350, 93200), ylim = c(2212800, 2399450), expand = TRUE)
+
+plot_raster0
+
+```
 
 
 ## Map with image only
@@ -296,9 +322,21 @@ ak_map
 
 
 ```{r eval=FALSE, include=FALSE}
-ggsave("../figures/ak-map.png", plot = ak_map, width = 6, height = 4, dpi = 600)
+ggsave("../figures/ak-map.png", plot = ak_map, width = 6, height = 4, units = "in", dpi = 600)
+```
+
+## Equal area
+```{r fig.height=4, fig.width=6}
+ak_map1 = ggdraw() +
+   draw_plot(plot_raster0) +
+  draw_plot(map_ak1, x = 0.63, y = 0.62, width = .35, height = .35) 
+ak_map1
 ```
 
 
+
+```{r eval=FALSE, include=FALSE}
+ggsave("../figures/alaska-map_epsg3338.png", plot = ak_map1, width = 6, height = 4, units = "in", dpi = 600)
+```
 
 
