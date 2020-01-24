@@ -1,0 +1,274 @@
+---
+title: "AK-Map"
+author: "Anna Talucci"
+date: "1/22/2020"
+output: html_document
+---
+
+# Packages
+```{r include=FALSE}
+  library(leaflet)
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(DT)
+library(sp)
+  library(sf)
+  library(ggmap) # devtools::install_github("dkahle/ggmap")
+library(ggrepel)
+library(RStoolbox)
+library(raster)
+library(rgdal)
+
+library(RColorBrewer)
+library(cowplot)
+library(ggspatial)
+library(maps)
+```
+- UL -159.2085, 71.3877
+- UR -153.6549, 71.3877
+- LR -153.6549, 70.3104
+- LL -159.2085, 70.3104
+
+```{r}
+
+(insetrect <- data.frame(xmin = -153.6549, xmax = -159.2085,
+    ymin = 70.3104, ymax = 71.3877))
+```
+```{r}
+proj_ak_shape = "+proj=longlat +datum=NAD83 +no_defs"
+```
+
+```{r}
+proj4string(insetrect) <-CRS("+proj=longlat +datum=NAD83 +no_defs")
+
+```
+
+Utqiavik, AK (AKA Barrow, AK)
+```{r}
+labs <- tibble(
+  long = c(-156.7886),
+  lat = c(71.2906),
+  names = ("Utqiagvik")) 
+```
+
+# AK Vector
+
+```{r}
+ak_sf <- st_read(
+  "../data/AK-state/GU_StateOrTerritory.shp")
+```
+
+```{r}
+ak_sp = readOGR("../data/AK-state/GU_StateOrTerritory.shp", "GU_StateOrTerritory") 
+```
+```{r}
+plot(ak_sp)
+```
+
+
+```{r}
+st_crs(ak_sf)
+
+```
+
+
+
+```{r}
+ak_sp_ee = spTransform(ak_sp, CRS( "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+```
++proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs 
+
+
+```{r}
+ak_sp_3338 = spTransform(ak_sp, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"))
+```
+
+```{r}
+ak_ee = st_transform(ak_sf, CRS( "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+```
+
+
+```{r}
+ak_sf_eeak = st_transform(ak_sf, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"))
+```
+
++proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs 
++proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs 
+
+```{r}
+ak_sp_eeak = spTransform(ak_sp, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"))
+```
+
+
+```{r}
+ak_sp_3338 = spTransform(ak_sp, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"))
+```
+
+
+```{r}
+ak_sp_wgs84 = spTransform(ak_sp, CRS("+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0"))
+plot(ak_sp_wgs84)
+```
+
+```{r}
+plot(ak_sp_ee)
+```
+EPSG 3338 NAD83 / Alaska Albers
+```{r}
+plot(ak_sp_3338)
+```
+Alaska Albers Equal Area Conic
+```{r}
+plot(ak_sp_eeak)
+```
+```{r}
+structure(ak_sf_eeak)
+```
+From ak_raster_3338 -214588.4, 23414.28, 2212535, 2399715  (xmin, xmax, ymin, ymax)
+```{r}
+map_ak1 = ggplot() + 
+  geom_sf(data = ak_sf_eeak, fill = "#E8E8E8", color = "black") +
+  geom_rect(data = insetrect, aes(xmin = -214588.4, xmax = 23414.28, ymin = 2212535, ymax = 2399715), alpha = 0, colour = "#000080", size = 1, linetype = 1) +
+  xlab("")+ylab("")+
+  coord_sf() +
+  theme_void() +
+ # add a bounding box so that will border the inset
+ theme(panel.background = element_rect(colour = "black", fill = "white", size = 0.5))
+
+
+map_ak1
+```
+```{r}
+map_ak2 = ggplot() + 
+  geom_sf(data = ak_sf, fill = "#E8E8E8", color = "black") +
+  geom_rect(data = insetrect, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), alpha = 0, colour = "#000080", size = 1.5, linetype = 1) +
+  xlab("")+ylab("")+
+  coord_sf() +
+  theme_void() +
+ # add a bounding box so that will border the inset
+ theme(panel.background = element_rect(colour = "black", fill = "white", size = 0.5))
+
+
+map_ak2
+```
+# AK Raster Data
+
+
+
+```{r}
+ak_raster = raster("../data/raster/S2_AK-2.tif")
+```
+
+```{r}
+projection(ak_raster)
+```
+
+```{r}
+newproj = "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"
+```
+
+
+```{r}
+ak_raster_3338 <- projectRaster(ak_raster, crs=newproj)
+
+
+```
+
+
+```{r}
+structure(ak_raster_3338)
+```
+
+
+
+
+```{r}
+ak_stack <- stack("../data/raster/S2_AK-2.tif")
+```
+
+```{r}
+ak_brick <- brick("../data/raster/S2_AK-2.tif")
+```
+
+
+```{r}
+ak_stack
+```
+
+```{r}
+ak_stack@layers
+```
+
+```{r}
+ak_brick_3338 <- projectRaster(ak_brick, crs=newproj)
+
+
+```
+
+From ak_raster_3338 -214588.4, 23414.28, 2212535, 2399715  (xmin, xmax, ymin, ymax)
+{bands: ['B12', 'B11', 'B4'], min: 0, max: 1, gamma: 1.5}
+```{r}
+plotRGB(ak_stack,
+        r = 1, g = 2, b = 3,
+        stretch = "lin")
+
+```
+
+```{r}
+extent(ak_stack)
+```
+
+```{r}
+summary(ak_stack)
+```
+
+```{r}
+plot_raster = ggplot() + ggRGB(ak_stack, r=1, g=2, b=3, stretch = "lin", ggLayer = TRUE, coord_equal = TRUE) +
+  xlim(-159.4999, -153.4058) + ylim(69.89028, 71.52341) +
+  theme_void() +
+   theme(
+     axis.text = element_blank(),
+     axis.ticks = element_blank(),
+     axis.title = element_blank()) +
+  
+  annotation_scale(location = "br", width_hint = 0.25, text_size = 12, text_face = NULL, text_family = "serif", text_col = "black") +
+    annotation_north_arrow(location = "tl", which_north = "true", 
+        pad_x = unit(0.4, "in"), pad_y = unit(0.5, "in"),
+        style = north_arrow_minimal(line_width = 1, line_col = "white", fill = "white", text_size = 10, text_face = NULL, text_family = "serif", text_col = "black")) +
+  coord_sf(crs = "+proj=longlat +datum=WGS84 +no_defs +ellps=WGS84 +towgs84=0,0,0", xlim = c(-159.4999, -153.4058), ylim = c(69.89028, 71.52341), expand = TRUE)
+
+plot_raster
+
+```
+
+```{r}
+plot_raster1 = ggplot() + ggRGB(ak_stack, r=1, g=2, b=3, stretch = "lin", ggLayer = TRUE, coord_equal = TRUE) +
+  xlim(-159.4999, -153.4058) + ylim(69.89028, 71.52341) +
+  theme_void() +
+   theme(
+     axis.text = element_blank(),
+     axis.ticks = element_blank(),
+     axis.title = element_blank()) 
+
+plot_raster1
+
+```
+
+# Map for AK proposal
+
+```{r fig.height=4, fig.width=6}
+ak_map = ggdraw() +
+   draw_plot(plot_raster1) +
+  draw_plot(map_ak1, x = 0.05, y = 0.02, width = .35, height = .35) 
+ak_map
+```
+
+
+```{r}
+ggsave("../figures/ak-map.png", plot = ak_map, width = 6, height = 4, dpi = 600)
+```
+
+
+
+
