@@ -133,7 +133,7 @@ From ak_raster_3338 -214588.4, 23414.28, 2212535, 2399715  (xmin, xmax, ymin, ym
 ```{r}
 map_ak1 = ggplot() + 
   geom_sf(data = ak_sf_eeak, fill = "#E8E8E8", color = "black") +
-  geom_rect(aes(xmin = -214588.4, xmax = 23414.28, ymin = 2212535, ymax = 2399715), alpha = 0, colour = "#000080", size = 1, linetype = 1) +
+  geom_rect(aes(xmin = -214588.4, xmax = 23414.28, ymin = 2212535, ymax = 2399715), alpha = 0, colour = "#000080", size = .5, linetype = 1) +
   xlab("")+ylab("")+
   coord_sf() +
   theme_void() +
@@ -296,6 +296,24 @@ plot_raster0
 
 ```
 
+```{r fig.height=2, fig.width=3}
+plot_raster01 = ggplot() + ggRGB(ak_stack_3338_clip, r=1, g=2, b=3, stretch = "lin", ggLayer = TRUE, coord_equal = TRUE) +
+  xlim(-214350 , 93200) + ylim(2212800 , 2399450) +
+  theme_void() +
+   theme(
+     axis.text = element_blank(),
+     axis.ticks = element_blank(),
+     axis.title = element_blank()) +
+  annotation_scale(location = "bl", line_width = .5, height = unit(0.1,  "cm"),pad_y = unit(0.1, "cm"),
+  text_pad = unit(0.15, "cm"), text_cex = 0.7, text_size = 8, text_face = NULL, text_family = "sans", text_col = "black") +
+    annotation_north_arrow(location = "tl", which_north = "true", height = unit(1, "cm"), width = unit(1, "cm"),
+        style = north_arrow_nautical(line_width = .5, line_col = "black", fill = c("black", "white"), text_size = 10, text_face = NULL, text_family = "sans", text_col = "black", text_angle = 0)) +
+  coord_sf(crs = "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs ", xlim = c(-214350, 93200), ylim = c(2212800, 2399450), expand = TRUE)
+
+plot_raster01
+
+```
+
 
 ## Map with image only
 ```{r}
@@ -339,4 +357,18 @@ ak_map1
 ggsave("../figures/alaska-map_epsg3338.png", plot = ak_map1, width = 6, height = 4, units = "in", dpi = 600)
 ```
 
+
+## Equal area
+```{r fig.height=2, fig.width=3}
+ak_map2 = ggdraw() +
+   draw_plot(plot_raster01) +
+  draw_plot(map_ak1, x = 0.63, y = 0.62, width = .35, height = .35) 
+ak_map2
+```
+
+
+
+```{r eval=FALSE, include=FALSE}
+ggsave("../figures/alaska-map_epsg3338_sm2.png", plot = ak_map2, width = 3, height = 2, units = "in", dpi = 600)
+```
 
