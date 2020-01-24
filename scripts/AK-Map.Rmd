@@ -133,7 +133,7 @@ From ak_raster_3338 -214588.4, 23414.28, 2212535, 2399715  (xmin, xmax, ymin, ym
 ```{r}
 map_ak1 = ggplot() + 
   geom_sf(data = ak_sf_eeak, fill = "#E8E8E8", color = "black") +
-  geom_rect(data = insetrect, aes(xmin = -214588.4, xmax = 23414.28, ymin = 2212535, ymax = 2399715), alpha = 0, colour = "#000080", size = 1, linetype = 1) +
+  geom_rect(aes(xmin = -214588.4, xmax = 23414.28, ymin = 2212535, ymax = 2399715), alpha = 0, colour = "#000080", size = 1, linetype = 1) +
   xlab("")+ylab("")+
   coord_sf() +
   theme_void() +
@@ -143,7 +143,7 @@ map_ak1 = ggplot() +
 
 map_ak1
 ```
-```{r}
+```{r eval=FALSE, include=FALSE}
 map_ak2 = ggplot() + 
   geom_sf(data = ak_sf, fill = "#E8E8E8", color = "black") +
   geom_rect(data = insetrect, aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax), alpha = 0, colour = "#000080", size = 1.5, linetype = 1) +
@@ -226,11 +226,26 @@ plotRGB(ak_stack_3338,
 ```
 
 ```{r}
+ak_stack_3338_clip <- mask(ak_stack_3338, ak_sp_3338)
+```
+
+```{r}
+plotRGB(ak_stack_3338_clip,
+        r = 1, g = 2, b = 3,
+        stretch = "lin")
+
+```
+
+```{r}
 extent(ak_stack)
 ```
 ```{r}
 extent(ak_stack_3338)
 ```
+```{r}
+extent(ak_stack_3338_clip)
+```
+
 ```{r}
 summary(ak_stack)
 ```
@@ -280,7 +295,7 @@ ak_map
 ```
 
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 ggsave("../figures/ak-map.png", plot = ak_map, width = 6, height = 4, dpi = 600)
 ```
 
