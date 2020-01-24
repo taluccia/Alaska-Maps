@@ -25,64 +25,49 @@ library(cowplot)
 library(ggspatial)
 library(maps)
 ```
+
+# Trying to create bound box but it depends on projection
 - UL -159.2085, 71.3877
 - UR -153.6549, 71.3877
 - LR -153.6549, 70.3104
 - LL -159.2085, 70.3104
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 
 (insetrect <- data.frame(xmin = -153.6549, xmax = -159.2085,
     ymin = 70.3104, ymax = 71.3877))
 ```
-```{r}
+```{r eval=FALSE, include=FALSE}
 proj_ak_shape = "+proj=longlat +datum=NAD83 +no_defs"
 ```
 
-```{r}
+```{r eval=FALSE, include=FALSE}
 proj4string(insetrect) <-CRS("+proj=longlat +datum=NAD83 +no_defs")
 
 ```
 
 Utqiavik, AK (AKA Barrow, AK)
-```{r}
+```{r eval=FALSE, include=FALSE}
 labs <- tibble(
   long = c(-156.7886),
   lat = c(71.2906),
   names = ("Utqiagvik")) 
 ```
 
-# AK Vector
+# AK Vector data
 
+## As SF object (Plays nice with ggplot)
 ```{r}
 ak_sf <- st_read(
   "../data/AK-state/GU_StateOrTerritory.shp")
 ```
 
 ```{r}
-ak_sp = readOGR("../data/AK-state/GU_StateOrTerritory.shp", "GU_StateOrTerritory") 
-```
-```{r}
-plot(ak_sp)
-```
-
-
-```{r}
 st_crs(ak_sf)
 
 ```
 
-
-
-```{r}
-ak_sp_ee = spTransform(ak_sp, CRS( "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
-```
-+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs 
-
-
-```{r}
-ak_sp_3338 = spTransform(ak_sp, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"))
-```
+### Transform to SF object to equal area projection
 
 ```{r}
 ak_ee = st_transform(ak_sf, CRS( "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
@@ -93,16 +78,33 @@ ak_ee = st_transform(ak_sf, CRS( "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +e
 ak_sf_eeak = st_transform(ak_sf, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"))
 ```
 
+## As SP polygon
+
+```{r}
+ak_sp = readOGR("../data/AK-state/GU_StateOrTerritory.shp", "GU_StateOrTerritory") 
+```
+```{r}
+plot(ak_sp)
+```
+
+### Tasnforming rpojection for SP
+```{r}
+ak_sp_ee = spTransform(ak_sp, CRS( "+proj=laea +lat_0=90 +lon_0=0 +x_0=0 +y_0=0 +ellps=WGS84 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"))
+```
++proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs 
+
+
+```{r}
+ak_sp_3338 = spTransform(ak_sp, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"))
+```
+
+
+
 +proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs 
 +proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs 
 
 ```{r}
 ak_sp_eeak = spTransform(ak_sp, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs"))
-```
-
-
-```{r}
-ak_sp_3338 = spTransform(ak_sp, CRS( "+proj=aea +lat_1=55 +lat_2=65 +lat_0=50 +lon_0=-154 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs"))
 ```
 
 
@@ -125,6 +127,8 @@ plot(ak_sp_eeak)
 ```{r}
 structure(ak_sf_eeak)
 ```
+
+# Make Map with ggplot and SF Object
 From ak_raster_3338 -214588.4, 23414.28, 2212535, 2399715  (xmin, xmax, ymin, ymax)
 ```{r}
 map_ak1 = ggplot() + 
@@ -152,10 +156,11 @@ map_ak2 = ggplot() +
 
 map_ak2
 ```
+
+
 # AK Raster Data
 
-
-
+## Raster as WGS 84 from GEE
 ```{r}
 ak_raster = raster("../data/raster/S2_AK-2.tif")
 ```
@@ -181,14 +186,16 @@ structure(ak_raster_3338)
 ```
 
 
-
+## Raster Stack for 3-band RGB Image
 
 ```{r}
 ak_stack <- stack("../data/raster/S2_AK-2.tif")
 ```
 
+
+### Raster stack with EPSG 3338
 ```{r}
-ak_brick <- brick("../data/raster/S2_AK-2.tif")
+ak_stack_3338 <- stack("../data/raster/S2_AK_3338.tif")
 ```
 
 
@@ -200,11 +207,7 @@ ak_stack
 ak_stack@layers
 ```
 
-```{r}
-ak_brick_3338 <- projectRaster(ak_brick, crs=newproj)
 
-
-```
 
 From ak_raster_3338 -214588.4, 23414.28, 2212535, 2399715  (xmin, xmax, ymin, ymax)
 {bands: ['B12', 'B11', 'B4'], min: 0, max: 1, gamma: 1.5}
@@ -216,13 +219,23 @@ plotRGB(ak_stack,
 ```
 
 ```{r}
-extent(ak_stack)
+plotRGB(ak_stack_3338,
+        r = 1, g = 2, b = 3,
+        stretch = "lin")
+
 ```
 
+```{r}
+extent(ak_stack)
+```
+```{r}
+extent(ak_stack_3338)
+```
 ```{r}
 summary(ak_stack)
 ```
 
+## Map with north arrow and scale bar
 ```{r}
 plot_raster = ggplot() + ggRGB(ak_stack, r=1, g=2, b=3, stretch = "lin", ggLayer = TRUE, coord_equal = TRUE) +
   xlim(-159.4999, -153.4058) + ylim(69.89028, 71.52341) +
@@ -242,6 +255,8 @@ plot_raster
 
 ```
 
+
+## Map with image only
 ```{r}
 plot_raster1 = ggplot() + ggRGB(ak_stack, r=1, g=2, b=3, stretch = "lin", ggLayer = TRUE, coord_equal = TRUE) +
   xlim(-159.4999, -153.4058) + ylim(69.89028, 71.52341) +
@@ -255,7 +270,7 @@ plot_raster1
 
 ```
 
-# Map for AK proposal
+# Full Map for AK proposal
 
 ```{r fig.height=4, fig.width=6}
 ak_map = ggdraw() +
